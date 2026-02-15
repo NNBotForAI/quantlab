@@ -1,0 +1,263 @@
+{
+  "strategy_research_workflow": {
+    "name": "完整策略研发生命周期",
+    "description": "基于quant-learning-24h成果的端到端策略研究流程",
+    "version": "1.0",
+    "stages": {
+      "stage1_idea_generation": {
+        "name": "创意生成",
+        "enabled": true,
+        "config": {
+          "technical_analysis": true,
+          "fundamental_analysis": false,
+          "behavioral_finance": true,
+          "market_specific": ["US_STOCK", "CN_STOCK", "CRYPTO"]
+        }
+      },
+      "stage2_factor_design": {
+        "name": "因子设计",
+        "enabled": true,
+        "config": {
+          "momentum_factors": {
+            "enabled": true,
+            "periods": [5, 10, 20, 60, 120],
+            "methods": ["simple_return", "smoothed_return", "reversal_return"]
+          },
+          "reversal_factors": {
+            "enabled": true,
+            "periods": [5, 10, 20],
+            "methods": ["price_position", "volatility_position", "volume_change"]
+          },
+          "volatility_factors": {
+            "enabled": true,
+            "periods": [10, 20, 60],
+            "methods": ["historical_vol", "garch_vol", "realized_vol"]
+          },
+          "value_factors": {
+            "enabled": false,
+            "metrics": ["PE", "PB", "PS", "dividend_yield", "market_cap"],
+            "methods": ["static_valuation", "dynamic_valuation"]
+          },
+          "quality_factors": {
+            "enabled": false,
+            "metrics": ["ROE", "ROA", "gross_margin", "debt_ratio", "cash_flow_ratio"],
+            "methods": ["financial_quality", "earning_quality", "growth_quality"]
+          },
+          "smart_money_factors": {
+            "enabled": false,
+            "methods": ["institutional_holding", "northbound_flow", "options_pcr"]
+          },
+          "technical_factors": {
+            "enabled": true,
+            "categories": [
+              {"name": "trend_indicators", "methods": ["SMA", "EMA", "MACD", "ADX"]},
+              {"name": "oscillator_indicators", "methods": ["RSI", "KDJ", "CCI", "RSV"]},
+              {"name": "volume_indicators", "methods": ["OBV", "VWAP", "volume_price"]},
+              {"name": "volatility_indicators", "methods": ["ATR", "bollinger", "volatility_channel"]}
+            ]
+          },
+          "sentiment_factors": {
+            "enabled": false,
+            "metrics": ["VIX", "fear_greed_index", "margin_balance", "new_account_growth"]
+          }
+        }
+      },
+      "stage3_strategy_construction": {
+        "name": "策略构建",
+        "enabled": true,
+        "config": {
+          "strategy_types": {
+            "single_factor": {
+              "enabled": true,
+              "entry_rules": ["signal_threshold", "signal_cross", "signal_combo"],
+              "exit_rules": ["stop_loss_take_profit", "reverse_signal", "time_stop"],
+              "position_rules": ["equal_weight", "market_cap_weight", "volatility_weight"]
+            },
+            "multi_factor": {
+              "enabled": true,
+              "factor_combination": ["linear_weighting", "nonlinear_combo", "ml_model"],
+              "factor_selection": ["ic_stats", "ir_stats", "genetic_algo", "lasso"],
+              "normalization": ["zscore_standard", "market_neutral", "industry_neutral"]
+            },
+            "rotation_strategy": {
+              "enabled": true,
+              "universe": ["sector_rotation", "style_rotation", "theme_rotation"],
+              "timing": ["ma_breakout", "vol_breakout", "macd_cross"]
+            },
+            "timing_strategy": {
+              "enabled": true,
+              "market_state": ["bull_bear_recognition", "vol_regime", "liquidity_regime"],
+              "entry_exit": ["state_switch", "confidence_weighted", "risk_liquidation"]
+            }
+          }
+        }
+      },
+      "stage4_backtest_validation": {
+        "name": "回测验证",
+        "enabled": true,
+        "config": {
+          "engines": {
+            "vectorbt": {
+              "use_for": ["quick_validation", "param_scan", "multi_strategy_compare"],
+              "chunking": 200,
+              "enabled": true
+            },
+            "backtrader": {
+              "use_for": ["accurate_validation", "final_verification", "live_simulation"],
+              "enabled": false,
+              "notes": "More accurate trade simulation with slippage and impact costs"
+            }
+          },
+          "time_periods": {
+            "train_period": "2020-01-01 to 2023-12-31",
+            "test_period": "2024-01-01 to 2024-12-31",
+            "validation_period": "2023-01-01 to 2023-12-31"
+          },
+          "cost_model": {
+            "commission": {
+              "cn_stock": 0.0003,
+              "us_stock": 0.0001,
+              "crypto_spot": 0.001,
+              "crypto_perp": 0.0004
+            },
+            "slippage": {
+              "cn_stock": 0.001,
+              "us_stock": 0.0005,
+              "crypto_spot": 0.0005,
+              "crypto_perp": 0.001
+            }
+          },
+          "metrics_to_track": [
+            "return_metrics": ["total_return", "annualized_return"],
+            "risk_metrics": ["sharpe_ratio", "calmar_ratio", "max_drawdown"],
+            "trade_metrics": ["win_rate", "profit_factor", "turnover"],
+            "robustness_metrics": ["monthly_win_rate", "quarterly_sharpe", "rolling_calmar"]
+          ]
+        }
+      },
+      "stage5_parameter_optimization": {
+        "name": "参数优化",
+        "enabled": true,
+        "config": {
+          "coarse_search": {
+            "method": "grid_search_or_random_sampling",
+            "sample_size": 50,
+            "window": "shorten_train_window_to_last_30_percent",
+            "metrics": "quick_scoring_sharpe_plus_calmar"
+          },
+          "fine_tuning": {
+            "method": "bayesian_optimization",
+            "sampler": "TPE",
+            "n_trials": 200,
+            "pruner": "MedianPruner_early_stopping",
+            "timeout": 3600,
+            "objective": "0.6*Sharpe + 0.6*Calmar - 0.2*Turnover - 0.2*Overfit"
+          },
+          "parameters_to_optimize": {
+            "indicator_periods": [5, 100],
+            "signal_thresholds": [-0.1, 0.1],
+            "stop_loss_levels": [0.02, 0.2],
+            "take_profit_levels": [0.02, 0.2],
+            "position_sizes": [1, 10]
+          },
+          "optimization_constraints": {
+            "max_turnover": 500,
+            "min_trades_per_month": 5,
+            "max_drawdown_limit": 0.25
+          }
+        }
+      },
+      "stage6_robustness_validation": {
+        "name": "鲁棒性验证",
+        "enabled": true,
+        "config": {
+          "walk_forward": {
+            "enabled": true,
+            "description": "Rolling window validation",
+            "train_window": 252,  // 1 year
+            "test_window": 63,   // 3 months
+            "step": 63,         // 3 months
+            "metrics": ["sharpe", "calmar", "return_per_window"],
+            "stability_score": "quantification_of_cross_window_sharpe_consistency"
+          },
+          "bootstrap": {
+            "enabled": true,
+            "description": "Bootstrap validation statistical significance",
+            "n_samples": 1000,
+            "method": "block_bootstrap_block_size_5",
+            "confidence_level": 0.95,
+            "output": ["sharpe_distribution", "confidence_intervals", "p_value"]
+          },
+          "regime_split": {
+            "enabled": true,
+            "description": "Market regime decomposition",
+            "regimes": [
+              "high_vol_low_vol",
+              "bull_bear_sideways",
+              "high_liquidity_low_liquidity"
+            ],
+            "detection_method": "volatility_plus_ma_trend",
+            "metrics": ["sharpe_by_regime", "return_by_regime", "drawdown_by_regime"]
+          },
+          "sensitivity_analysis": {
+            "enabled": true,
+            "description": "Parameter sensitivity analysis",
+            "parameters": ["main_strategy_parameters"],
+            "variations": ["within_20_percent_range"],
+            "heatmap": "param_value_vs_strategy_performance_heatmap",
+            "critical_parameters": "identify_high_sensitivity_params"
+          },
+          "leakage_checks": {
+            "enabled": true,
+            "description": "Future leakage detection",
+            "checks": [
+              "timestamp_alignment_UTC",
+              "shift_1_mandatory_enforcement",
+              "correlation_between_features_and_future_prices",
+              "data_snooping_survivorship_bias"
+            ]
+          }
+        }
+      }
+    },
+    "reporting": {
+      "enabled": true,
+      "sections": [
+        "executive_summary_key_metrics_strategy_rating_risk_warnings",
+        "performance_analysis_equity_curve_drawdown_monthly_heatmap",
+        "optimization_results_best_params_sensitivity_heatmap_confidence_interval",
+        "robustness_assessment_rolling_performance_market_regime_analysis_statistical_significance",
+        "configuration_documentation_complete_spec_file_param_explanation_dependencies"
+      ],
+      "grading_system": {
+        "A": "sharpe>2_calmar>2_drawdown<15%_high_consistency",
+        "B": "sharpe_1-2_calmar_1-2_drawdown_15-25%_medium_consistency",
+        "C": "sharpe_0.5-1_calmar_0.5-1_drawdown_25-35%_low_consistency",
+        "D": "sharpe_0-0.5_calmar_0-0.5_drawdown_35-50%_no_consistency",
+        "F": "sharpe<0_calmar<0_drawdown>50%_failure"
+      },
+      "recommendations": {
+        "continue_to_deployment": ["A/B_grade"],
+        "parameter_refinement": ["C_grade"],
+        "strategy_redesign": ["D/F_grade"],
+        "additional_validation": ["inconsistent_grading"]
+      }
+    },
+    "integration_with_quant_learning_24h": {
+      "theoretical_foundation": [
+        "stage01_market_basics_alpha101_factors",
+        "stage03_asset_pricing_three_five_factor_models",
+        "stage04_risk_management_optimization_theory",
+        "stage06_ml_applications_optimization_methods",
+        "stage13_practical_projects_quantitative_trading_system",
+        "stage21_joinquant_platform_strategy_creation_daily_selection_backtest"
+      ],
+      "practical_insights": [
+        "joinquant_strategies_learning_methods",
+        "technical_analysis_schools_trend_oscillation_form",
+        "fundamental_analysis_schools_value_growth_quality",
+        "behavioral_finance_schools_momentum_reversal_smart_money"
+      ]
+    }
+  }
+}

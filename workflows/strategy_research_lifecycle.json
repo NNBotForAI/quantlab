@@ -1,0 +1,247 @@
+{
+  "strategy_research": {
+    "name": "完整策略研发生命周期",
+    "description": "基于quant-learning-24h成果的6阶段策略研究流程",
+    "version": "1.0",
+    "stages": {
+      "stage1_idea_generation": {
+        "name": "创意生成与灵感挖掘",
+        "reference": "quant-learning-24h/01-市场基础理论, 20-总结与展望",
+        "methods": [
+          "技术分析流派（趋势/震荡/形态）",
+          "基本面流派（价值/成长/质量）",
+          "行为金融流派（动量/反转/聪明钱）",
+          "果仁网策略学习（优秀策略借鉴方法）"
+        ],
+        "output": "strategy_ideas.json"
+      },
+      "stage2_factor_design": {
+        "name": "因子设计与特征工程",
+        "reference": [
+          "quant-learning-24h/01-市场基础理论（Alpha101因子）",
+          "quant-learning-24h/03-资产定价（三因子、五因子）",
+          "quant-learning-24h/21-果仁网量化平台（技术指标）"
+        ],
+        "factor_categories": {
+          "动量因子": {
+            "periods": [5, 10, 20, 60, 120],
+            "methods": ["简单收益率", "平滑收益率", "反转收益率"]
+          },
+          "反转因子": {
+            "periods": [5, 10, 20],
+            "methods": ["价格相对位置", "波动率相对位置", "成交量变化"]
+          },
+          "波动率因子": {
+            "periods": [10, 20, 60],
+            "methods": ["历史波动率", "GARCH波动率", "已实现波动率"]
+          },
+          "价值因子": {
+            "metrics": ["PE", "PB", "PS", "股息率", "市值"],
+            "methods": ["静态估值", "动态估值"]
+          },
+          "质量因子": {
+            "metrics": ["ROE", "ROA", "毛利率", "负债率", "现金流比率"],
+            "methods": ["财务质量", "盈利质量", "成长质量"]
+          },
+          "聪明钱因子": {
+            "methods": ["机构持仓变化", "北向资金流向", "期权PCR"]
+          },
+          "技术指标因子": {
+            "categories": [
+            "趋势指标（SMA, EMA, MACD, ADX）",
+            "振荡指标（RSI, KDJ, CCI, RSV）",
+            "成交量指标（OBV, VWAP, 量价关系）",
+            "波动率指标（ATR, 布林带, 波动率通道）"
+          ]
+          },
+          "市场情绪因子": {
+            "metrics": ["VIX", "恐慌指数", "融资融券余额", "新增开户数"]
+          }
+        },
+        "output": "factors_config.json"
+      },
+      "stage3_strategy_construction": {
+        "name": "策略构建",
+        "reference": [
+          "quant-learning-24h/21-果仁网量化平台（策略创建、每日选股、回测）",
+          "quant-learning-24h/13-实战项目（量化交易系统）"
+        ],
+        "strategy_types": {
+          "单因子策略": {
+            "entry_rules": ["信号阈值", "信号交叉", "信号组合"],
+            "exit_rules": ["止损止盈", "反转信号", "时间止损"],
+            "position_rules": ["等权重", "市值加权", "波动率加权"]
+          },
+          "多因子策略": {
+            "factor_combination": ["线性加权", "非线性组合", "机器学习模型"],
+            "factor_selection": ["IC统计", "IR统计", "遗传算法", "LASSO"],
+            "normalization": ["Z-score标准化", "市值中性化", "行业中性化"]
+          },
+          "轮动策略": {
+            "universe": ["行业轮动", "风格轮动", "主题轮动"],
+            "timing": ["均线突破", "波动率突破", "MACD金叉"]
+          },
+          "择时策略": {
+            "market_state": ["牛熊市识别", "波动率状态", "流动性状态"],
+            "entry_exit": ["状态切换", "置信度加权", "风险平仓"]
+          }
+        },
+        "output": "strategy_config.json"
+      },
+      "stage4_backtest_validation": {
+        "name": "回测验证",
+        "reference": [
+          "quant-learning-24h/13-实战项目（回测系统）",
+          "quant-learning-24h/21-果仁网量化平台（策略回测、排名分析）"
+        ],
+        "backtest_config": {
+          "engines": {
+            "vectorbt": {
+              "use_for": ["快速验证", "参数扫描", "多策略对比"],
+              "chunking": 200
+            },
+            "backtrader": {
+              "use_for": ["精确验证", "最终确认", "实盘模拟"],
+              "notes": "更精确的交易模拟，包含滑点和冲击成本"
+            }
+          },
+          "time_periods": {
+            "train_period": "2020-01-01 to 2023-12-31",
+            "test_period": "2024-01-01 to 2024-12-31",
+            "validation_period": "2023-01-01 to 2023-12-31"
+          },
+          "cost_model": {
+            "commission": {
+              "cn_stock": 0.0003,
+              "us_stock": 0.0001,
+              "crypto_spot": 0.001,
+              "crypto_perp": 0.0004
+            },
+            "slippage": {
+              "cn_stock": 0.001,
+              "us_stock": 0.0005,
+              "crypto_spot": 0.0005,
+              "crypto_perp": 0.001
+            }
+          },
+          "metrics_to_track": [
+            "收益率（总收益、年化收益）",
+            "风险指标（夏普比率、卡尔马比率、最大回撤）",
+            "交易指标（胜率、盈亏比、换手率）",
+            "稳健性指标（月度胜率、季度夏普、滚动卡尔马）"
+          ]
+        },
+        "output": "backtest_results.json"
+      },
+      "stage5_parameter_optimization": {
+        "name": "参数优化",
+        "reference": [
+          "quant-learning-24h/04-风险管理（优化理论）",
+          "quant-learning-24h/06-ML应用（优化方法）"
+        ],
+        "optimization_config": {
+          "coarse_search": {
+            "method": "网格搜索 or随机采样",
+            "sample_size": 50,
+            "window": "缩短训练窗口（最后30%）",
+            "metrics": "快速评分（夏普 + 卡尔马）"
+          },
+          "fine_tuning": {
+            "method": "贝叶斯优化",
+            "sampler": "TPE",
+            "n_trials": 200,
+            "pruner": "MedianPruner（早停策略）",
+            "timeout": 3600,
+            "objective": "0.6*Sharpe + 0.6*Calmar - 0.2*Turnover - 0.2*Overfit"
+          },
+          "parameters_to_optimize": {
+            "indicator_periods": [5-100],
+            "signal_thresholds": [-0.1 to 0.1],
+            "stop_loss_levels": [0.02-0.2],
+            "take_profit_levels": [0.02-0.2],
+            "position_sizes": [1-10]
+          },
+          "optimization_constraints": {
+            "max_turnover": 500,
+            "min_trades_per_month": 5,
+            "max_drawdown_limit": 0.25
+          }
+        },
+        "output": "optimized_parameters.json"
+      },
+      "stage6_robustness_validation": {
+        "name": "鲁棒性验证",
+        "reference": [
+          "quant-learning-24h/04-风险管理（VaR、压力测试）",
+          "quant-learning-24h/06-ML应用（交叉验证、样本外测试）"
+        ],
+        "robustness_tests": {
+          "walk_forward": {
+            "description": "滚动窗口验证",
+            "train_window": 252,  # 1年
+            "test_window": 63,   # 3个月
+            "step": 63,         # 3个月
+            "metrics": ["每个窗口的夏普、卡尔马、收益"],
+            "stability_score": "跨窗口夏普一致性的量化指标"
+          },
+          "bootstrap": {
+            "description": "自举验证统计显著性",
+            "n_samples": 1000,
+            "method": "块自举（block_size=5）",
+            "confidence_level": 0.95,
+            "output": ["夏普分布、置信区间、p-value"]
+          },
+          "regime_split": {
+            "description": "市场状态分解",
+            "regimes": [
+              "高波动/低波动",
+              "牛市/熊市/震荡市",
+              "高流动性/低流动性"
+            ],
+            "detection_method": "波动率 + 均线趋势",
+            "metrics": ["各状态下的夏普、收益、最大回撤"]
+          },
+          "sensitivity_analysis": {
+            "description": "参数敏感性分析",
+            "parameters": ["主要策略参数"],
+            "variations": ["±20%范围内"],
+            "heatmap": "参数值 vs 策略表现热图",
+            "critical_parameters": "识别敏感度高的参数"
+          },
+          "leakage_checks": {
+            "description": "未来泄露检测",
+            "checks": [
+              "时间戳对齐（UTC）",
+              "shift(1)强制执行",
+              "特征与未来价格的相关性",
+              "数据窥探（幸存者偏差）"
+            ]
+          }
+        },
+        "output": "robustness_report.json"
+      }
+    },
+    "reporting": {
+      "report_sections": [
+        "执行摘要（关键指标、策略评级、风险警告）",
+        "性能分析（资金曲线、回撤、月度热图）",
+        "优化结果（最佳参数、敏感性热图、置信区间）",
+        "鲁棒性评估（滚动表现、市场状态分析、统计显著性）",
+        "配置文档（完整spec文件、参数说明、依赖关系）"
+      ],
+      "grading_system": {
+        "A": "夏普>2, 卡尔马>2, 回撤<15%, 高一致性",
+        "B": "夏普1-2, 卡尔马1-2, 回撤15-25%, 中等一致性",
+        "C": "夏普0.5-1, 卡尔马0.5-1, 回撤25-35%, 低一致性",
+        "D": "夏普0-0.5, 卡尔马0-0.5, 回撤35-50%, 无一致性",
+        "F": "夏普<0, 卡尔马<0, 回撤>50%, 失败"
+      },
+      "recommendations": {
+        "continue_to_deployment": ["A/B评级"],
+        "parameter_refinement": ["C评级"],
+        "strategy_redesign": ["D/F评级"],
+        "additional_validation": ["评级不一致"]
+      }
+    }
+  }
+}
