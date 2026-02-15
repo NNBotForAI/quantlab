@@ -40,6 +40,7 @@ from src.quantlab.report.build_report import ReportBuilder
 from src.quantlab.common.logging import get_logger, setup_logging
 from src.quantlab.common.hashing import hash_spec, create_run_id
 from src.quantlab.common.cache import FeatureCache
+from src.quantlab.workflows.strategy_idea_generator import StrategyIdeaGenerator, StrategyIdea, StrategyCategory
 
 
 logger = get_logger(__name__)
@@ -113,46 +114,222 @@ class StrategyResearchLifecycle:
         - Fundamental analysis schools (value/growth/quality)
         - Behavioral finance schools (momentum/reversal/smart money)
         - JoinQuant strategies (successful strategy learning methods)
+        
+        Uses systematic StrategyIdeaGenerator with 25+ predefined templates.
         """
         logger.info("stage_start", stage="idea_generation", strategy=self.config.strategy_name)
         
-        # Generate strategy ideas based on market types
-        ideas = []
+        # Initialize idea generator with systematic templates
+        idea_generator = StrategyIdeaGenerator()
         
-        # Technical analysis ideas
-        if self.config.idea_generation.get("technical_analysis", True):
-            tech_ideas = self._generate_technical_ideas()
-            ideas.extend(tech_ideas)
+        # Analyze current market regime
+        market_regime = self._analyze_market_regime()
         
-        # Fundamental analysis ideas
-        if self.config.idea_generation.get("fundamental_analysis", False):
-            fundamental_ideas = self._generate_fundamental_ideas()
-            ideas.extend(fundamental_ideas)
+        # Determine risk preference
+        risk_preference = self.config.idea_generation.get("risk_preference", "medium")
         
-        # Behavioral finance ideas
-        if self.config.idea_generation.get("behavioral_finance", True):
-            behavioral_ideas = self._generate_behavioral_ideas()
-            ideas.extend(behavioral_ideas)
-        
-        # Market-specific ideas
+        # Generate ideas based on market type and regime
         asset_type = self.config.instrument["asset_type"]
-        if asset_type == "CN_STOCK":
-            cn_specific = self._generate_cn_stock_ideas()
-            ideas.extend(cn_specific)
-        elif asset_type == "US_STOCK":
-            us_specific = self._generate_us_stock_ideas()
-            ideas.extend(us_specific)
-        elif asset_type.startswith("CRYPTO"):
-            crypto_specific = self._generate_crypto_ideas()
-            ideas.extend(crypto_specific)
+        
+        # Convert asset_type to format expected by generator
+        market_type_map = {
+            "CN_STOCK": "CN_STOCK",
+            "US_STOCK": "US_STOCK",
+            "CRYPTO_SPOT": "CRYPTO_SPOT",
+            "CRYPTO_PERP": "CRYPTO_PERP"
+        }
+        market_type = market_type_map.get(asset_type, "US_STOCK")
+        
+        # Generate ideas
+        generated_ideas = idea_generator.generate_ideas(
+            market_type=market_type,
+            market_regime=market_regime["regime"],
+            risk_preference=risk_preference,
+            count=10  # Generate top 10 relevant ideas
+        )
+        
+        # Convert StrategyIdea objects to dictionaries
+        ideas = []
+        for idea_obj in generated_ideas:
+            idea = {
+                "name": idea_obj.name,
+                "category": idea_obj.category.value,
+                "description": idea_obj.description,
+                "logic": idea_obj.logic,
+                "parameters": idea_obj.parameters,
+                "suitable_markets": idea_obj.suitable_markets,
+                "risk_level": idea_obj.risk_level,
+                "time_horizon": idea_obj.time_horizon,
+                "performance_expectation": idea_obj.performance_expectation,
+                "source": idea_obj.source,
+                "relevance_score": self._calculate_relevance_score(
+                    idea_obj, market_regime, risk_preference
+                )
+            }
+            ideas.append(idea)
+        
+        # Sort by relevance score
+        ideas.sort(key=lambda x: x["relevance_score"], reverse=True)
+        
+        # Add market-specific custom ideas
+        custom_ideas = self._generate_market_specific_ideas(asset_type)
+        ideas.extend(custom_ideas)
         
         # Save ideas
         ideas_path = self.output_dir / f"{self.config.strategy_name}_ideas.json"
         with open(ideas_path, 'w', encoding='utf-8') as f:
-            json.dump(ideas, f, indent=2, ensure_ascii=False, default=str)
+            json.dump({
+                "market_regime": market_regime,
+                "risk_preference": risk_preference,
+                "ideas": ideas
+            }, f, indent=2, ensure_ascii=False, default=str)
         
         logger.info("stage_complete", stage="idea_generation", ideas_generated=len(ideas))
         return ideas
+    
+    def _analyze_market_regime(self) -> Dict[str, Any]:
+        """
+        Analyze current market regime to recommend appropriate strategies.
+        
+        Returns:
+            Dictionary containing regime analysis
+        """
+        # This would normally analyze real data
+        # For now, return default analysis
+        
+        return {
+            "regime": "mixed",  # trending, ranging, volatile, mixed
+            "volatility": "medium",
+            "trend_strength": "medium",
+            "confidence": 0.7
+        }
+    
+    def _calculate_relevance_score(
+        self,
+        idea: StrategyIdea,
+        market_regime: Dict[str, Any],
+        risk_preference: str
+    ) -> float:
+        """Calculate relevance score for an idea."""
+        score = 0.0
+        
+        # Market regime matching
+        regime = market_regime["regime"]
+        if regime == "trending":
+            if idea.category in [StrategyCategory.TREND_FOLLOWING, StrategyCategory.MOMENTUM]:
+                score += 3.0
+        elif regime == "ranging":
+            if idea.category in [StrategyCategory.MEAN_REVERSION, StrategyCategory.REVERSAL]:
+                score += 3.0
+        elif regime == "volatile":
+            if idea.category in [StrategyCategory.ROTATION, StrategyCategory.TIMING]:
+                score += 2.0
+        
+        # Risk preference matching
+        if risk_preference == "low":
+            if idea.risk_level == "low":
+                score += 2.0
+            elif idea.risk_level == "medium":
+                score += 1.0
+        elif risk_preference == "medium":
+            if idea.risk_level == "medium":
+                score += 2.0
+        elif risk_preference == "high":
+            if idea.risk_level == "high":
+                score += 2.0
+        
+        return score
+    
+    def _generate_market_specific_ideas(self, asset_type: str) -> List[Dict[str, Any]]:
+        """
+        Generate market-specific custom ideas beyond systematic templates.
+        
+        Args:
+            asset_type: Asset type (CN_STOCK, US_STOCK, CRYPTO_SPOT, CRYPTO_PERP)
+        
+        Returns:
+            List of custom strategy ideas
+        """
+        custom_ideas = []
+        
+        if asset_type == "CN_STOCK":
+            custom_ideas.append({
+                "name": "A股T+1策略",
+                "category": "reversal",
+                "description": "利用A股T+1交割制度的特殊策略",
+                "logic": "昨日买入今日卖出，避免隔夜风险",
+                "parameters": {
+                    "entry_time": "09:30-14:30",
+                    "exit_time": "14:50-15:00"
+                },
+                "risk_level": "medium",
+                "time_horizon": "intraday",
+                "performance_expectation": "避免隔夜风险，日内波动收益",
+                "source": "market_specific_cn_stock"
+            })
+            
+            custom_ideas.append({
+                "name": "北向资金跟随",
+                "category": "smart_money",
+                "description": "跟随沪深港通北向资金流向",
+                "logic": "连续净流入 → 做多；连续净流出 → 做空",
+                "parameters": {
+                    "flow_threshold": 1.0,
+                    "consecutive_days": 3
+                },
+                "risk_level": "low",
+                "time_horizon": "short_term",
+                "performance_expectation": "外资偏好，短期效果好",
+                "source": "market_specific_cn_stock"
+            })
+            
+        elif asset_type == "US_STOCK":
+            custom_ideas.append({
+                "name": "美股盘前盘后策略",
+                "category": "reversal",
+                "description": "利用美股盘前盘后流动性差异",
+                "logic": "盘前低开反弹，盘后高开回落",
+                "parameters": {
+                    "pre_market_entry": "09:00-09:30",
+                    "after_hours_entry": "16:00-17:00"
+                },
+                "risk_level": "high",
+                "time_horizon": "intraday",
+                "performance_expectation": "流动性异常，高波动",
+                "source": "market_specific_us_stock"
+            })
+            
+        elif asset_type.startswith("CRYPTO"):
+            custom_ideas.append({
+                "name": "加密货币周末效应",
+                "category": "momentum",
+                "description": "加密货币24/7市场的周末特殊模式",
+                "logic": "周六周日表现与 weekdays 差异化策略",
+                "parameters": {
+                    "weekend_bias": "long_short_neutral"
+                },
+                "risk_level": "medium",
+                "time_horizon": "short_term",
+                "performance_expectation": "市场结构差异，波动率变化",
+                "source": "market_specific_crypto"
+            })
+            
+            custom_ideas.append({
+                "name": "资金费率套利",
+                "category": "rotation",
+                "description": "永续合约资金费率偏离套利",
+                "logic": "Funding_Rate > Threshold → 套利仓位",
+                "parameters": {
+                    "rate_threshold": 0.01,
+                    "monitoring_frequency": "1H"
+                },
+                "risk_level": "low",
+                "time_horizon": "short_term",
+                "performance_expectation": "低风险稳定收益",
+                "source": "market_specific_crypto_perp"
+            })
+        
+        return custom_ideas
     
     def _generate_technical_ideas(self) -> List[Dict[str, Any]]:
         """Generate technical analysis strategy ideas."""
