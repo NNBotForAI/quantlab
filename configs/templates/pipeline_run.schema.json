@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QuantLab Pipeline Run Specification",
+  "type": "object",
+  "required": ["command", "strategy_config"],
+  "properties": {
+    "command": {
+      "type": "string",
+      "enum": ["data:update", "backtest:run", "optimize:run", "robustness:run", "report:build"],
+      "description": "Pipeline command to execute"
+    },
+    "strategy_config": {
+      "type": "string",
+      "description": "Path to strategy config JSON file"
+    },
+    "run_id": {
+      "type": "string",
+      "description": "Run ID (auto-generated if not provided)"
+    },
+    "data_version": {
+      "type": "string",
+      "description": "Data version hash (auto-computed if not provided)"
+    },
+    "code_version": {
+      "type": "string",
+      "description": "Code version hash (auto-computed if not provided)"
+    },
+    "output_dir": {
+      "type": "string",
+      "default": "results",
+      "description": "Output directory for results"
+    },
+    "overwrite": {
+      "type": "boolean",
+      "default": false,
+      "description": "Overwrite existing results"
+    },
+    "dry_run": {
+      "type": "boolean",
+      "default": false,
+      "description": "Validate config without execution"
+    }
+  }
+}

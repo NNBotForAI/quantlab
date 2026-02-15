@@ -1,0 +1,57 @@
+{
+  "strategy_name": "US Equity Momentum Strategy",
+  "description": "Simple momentum strategy using 20-period returns for US stocks",
+  "instrument": {
+    "asset_type": "US_STOCK",
+    "symbols": ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "TSLA", "META", "JPM"],
+    "venue": "NASDAQ/NYSE",
+    "quote_currency": "USD",
+    "lot_size": 1,
+    "allow_fractional": true,
+    "shortable": true,
+    "leverage": 1
+  },
+  "session": {
+    "calendar": "US",
+    "timezone": "America/New_York",
+    "trading_hours": "REGULAR"
+  },
+  "data": {
+    "source": "yfinance",
+    "frequency": "1D",
+    "price_mode": "adjusted",
+    "start_date": "2020-01-01",
+    "end_date": "2024-12-31"
+  },
+  "features": {
+    "lookback_period": 20,
+    "indicators": {
+      "momentum": {
+        "period": 20,
+        "type": "returns"
+      }
+    },
+    "signals": {
+      "long_threshold": 0.02,
+      "short_threshold": -0.02
+    }
+  },
+  "backtest": {
+    "initial_capital": 100000,
+    "commission": 0.001,
+    "slippage": 0.0005
+  },
+  "performance": {
+    "parallel_backend": "joblib",
+    "max_workers": 4,
+    "cache_enabled": true,
+    "vectorbt_chunking": 200
+  },
+  "validation": {
+    "walk_forward": true,
+    "sensitivity": true,
+    "bootstrap": true,
+    "regime_split": true,
+    "leakage_checks": true
+  }
+}

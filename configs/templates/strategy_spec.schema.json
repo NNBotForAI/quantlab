@@ -1,0 +1,225 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QuantLab Strategy Specification",
+  "type": "object",
+  "required": [
+    "strategy_name",
+    "instrument",
+    "session",
+    "data",
+    "features",
+    "backtest",
+    "performance"
+  ],
+  "properties": {
+    "strategy_name": {
+      "type": "string",
+      "description": "Human-readable strategy name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Strategy description"
+    },
+    "instrument": {
+      "type": "object",
+      "required": ["asset_type", "symbol", "venue"],
+      "properties": {
+        "asset_type": {
+          "type": "string",
+          "enum": ["CN_STOCK", "US_STOCK", "CRYPTO_SPOT", "CRYPTO_PERP"],
+          "description": "Asset class type"
+        },
+        "symbol": {
+          "type": "string",
+          "description": "Instrument symbol"
+        },
+        "symbols": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Multiple symbols for multi-asset strategies"
+        },
+        "venue": {
+          "type": "string",
+          "description": "Trading venue/exchange"
+        },
+        "base_currency": {
+          "type": "string",
+          "description": "Base currency for crypto"
+        },
+        "quote_currency": {
+          "type": "string",
+          "description": "Quote currency (pricing currency)"
+        },
+        "lot_size": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Minimum order quantity"
+        },
+        "allow_fractional": {
+          "type": "boolean",
+          "description": "Allow fractional shares"
+        },
+        "shortable": {
+          "type": "boolean",
+          "description": "Is instrument shortable"
+        },
+        "leverage": {
+          "type": "number",
+          "minimum": 1,
+          "default": 1,
+          "description": "Leverage multiplier"
+        }
+      }
+    },
+    "session": {
+      "type": "object",
+      "required": ["calendar", "timezone"],
+      "properties": {
+        "calendar": {
+          "type": "string",
+          "enum": ["CN_A", "US", "CRYPTO_24_7"],
+          "description": "Trading calendar"
+        },
+        "timezone": {
+          "type": "string",
+          "enum": ["Asia/Shanghai", "America/New_York", "UTC"],
+          "description": "Timezone for data display"
+        },
+        "trading_hours": {
+          "type": "string",
+          "enum": ["REGULAR", "EXTENDED", "ALL_DAY"],
+          "default": "REGULAR",
+          "description": "Trading hours mode"
+        }
+      }
+    },
+    "data": {
+      "type": "object",
+      "required": ["source", "frequency"],
+      "properties": {
+        "source": {
+          "type": "string",
+          "enum": ["yfinance", "akshare", "ccxt"],
+          "description": "Data source"
+        },
+        "frequency": {
+          "type": "string",
+          "enum": ["1m", "5m", "15m", "1H", "1D"],
+          "description": "Data frequency"
+        },
+        "price_mode": {
+          "type": "string",
+          "enum": ["raw", "adjusted"],
+          "default": "raw",
+          "description": "Price adjustment mode"
+        },
+        "start_date": {
+          "type": "string",
+          "format": "date",
+          "description": "Start date YYYY-MM-DD"
+        },
+        "end_date": {
+          "type": "string",
+          "format": "date",
+          "description": "End date YYYY-MM-DD"
+        }
+      }
+    },
+    "features": {
+      "type": "object",
+      "properties": {
+        "lookback_period": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Feature lookback period in bars"
+        },
+        "indicators": {
+          "type": "object",
+          "description": "Indicator configuration"
+        },
+        "signals": {
+          "type": "object",
+          "description": "Signal generation rules"
+        }
+      }
+    },
+    "backtest": {
+      "type": "object",
+      "required": ["initial_capital"],
+      "properties": {
+        "initial_capital": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Starting capital"
+        },
+        "commission": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Commission rate in basis points"
+        },
+        "slippage": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Slippage in basis points"
+        }
+      }
+    },
+    "performance": {
+      "type": "object",
+      "properties": {
+        "parallel_backend": {
+          "type": "string",
+          "enum": ["joblib", "ray"],
+          "default": "joblib",
+          "description": "Parallel execution backend"
+        },
+        "max_workers": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 4,
+          "description": "Maximum parallel workers"
+        },
+        "cache_enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable feature caching"
+        },
+        "vectorbt_chunking": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Symbols per chunk for VectorBT"
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "properties": {
+        "walk_forward": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable walk-forward validation"
+        },
+        "sensitivity": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable sensitivity analysis"
+        },
+        "bootstrap": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable bootstrap validation"
+        },
+        "regime_split": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable regime-based split"
+        },
+        "leakage_checks": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable future leakage checks"
+        }
+      }
+    }
+  }
+}

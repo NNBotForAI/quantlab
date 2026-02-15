@@ -1,0 +1,57 @@
+{
+  "strategy_name": "CN Equity Momentum Strategy",
+  "description": "Momentum strategy for A-shares using 20-period returns",
+  "instrument": {
+    "asset_type": "CN_STOCK",
+    "symbols": ["000001.SZ", "000002.SZ", "600000.SH", "600036.SH", "601318.SH"],
+    "venue": "SZSE/SSE",
+    "quote_currency": "CNY",
+    "lot_size": 100,
+    "allow_fractional": false,
+    "shortable": false,
+    "leverage": 1
+  },
+  "session": {
+    "calendar": "CN_A",
+    "timezone": "Asia/Shanghai",
+    "trading_hours": "REGULAR"
+  },
+  "data": {
+    "source": "akshare",
+    "frequency": "1D",
+    "price_mode": "raw",
+    "start_date": "2020-01-01",
+    "end_date": "2024-12-31"
+  },
+  "features": {
+    "lookback_period": 20,
+    "indicators": {
+      "momentum": {
+        "period": 20,
+        "type": "returns"
+      }
+    },
+    "signals": {
+      "long_threshold": 0.03,
+      "short_threshold": -0.03
+    }
+  },
+  "backtest": {
+    "initial_capital": 1000000,
+    "commission": 0.0003,
+    "slippage": 0.001
+  },
+  "performance": {
+    "parallel_backend": "joblib",
+    "max_workers": 4,
+    "cache_enabled": true,
+    "vectorbt_chunking": 200
+  },
+  "validation": {
+    "walk_forward": true,
+    "sensitivity": false,
+    "bootstrap": true,
+    "regime_split": true,
+    "leakage_checks": true
+  }
+}
