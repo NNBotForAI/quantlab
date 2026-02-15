@@ -1,0 +1,32 @@
+name: quantlab_runner
+version: 1.0.0
+description: QuantLab Runner - Execute QuantLab pipeline commands safely
+author: QuantLab Team
+
+# Allowed commands
+allowed_commands:
+  - "python -m quantlab.pipeline.run data:update"
+  - "python -m quantlab.pipeline.run backtest:run"
+  - "python -m quantlab.pipeline.run optimize:run"
+  - "python -m quantlab.pipeline.run robustness:run"
+  - "python -m quantlab.pipeline.run report:build"
+
+# Default configuration
+defaults:
+  config_path: configs/examples/us_momentum.json
+  output_dir: results
+  dry_run: false
+
+# Command templates
+templates:
+  data_update: "python -m quantlab.pipeline.run data:update --config {{config_path}} --output {{output_dir}}"
+  backtest_run: "python -m quantlab.pipeline.run backtest:run --config {{config_path}} --output {{output_dir}}"
+  optimize_run: "python -m quantlab.pipeline.run optimize:run --config {{config_path}} --output {{output_dir}} --trials {{trials}}"
+  robustness_run: "python -m quantlab.pipeline.run robustness:run --config {{config_path}} --output {{output_dir}} {{options}}"
+  report_build: "python -m quantlab.pipeline.run report:build --run-id {{run_id}} --output {{output_dir}}"
+
+# Security settings
+security:
+  allow_shell: false
+  max_timeout: 3600  # 1 hour max per command
+  require_confirmation: true  # For destructive operations (not applicable to QuantLab)

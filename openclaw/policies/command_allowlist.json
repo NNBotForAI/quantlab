@@ -1,0 +1,23 @@
+{
+  "allowed_patterns": [
+    "^python -m quantlab\\.pipeline\\.run data:update$",
+    "^python -m quantlab\\.pipeline\\.run backtest:run$",
+    "^python -m quantlab\\.pipeline\\.run optimize:run$",
+    "^python -m quantlab\\.pipeline\\.run robustness:run$",
+    "^python -m quantlab\\.pipeline\\.run report:build$"
+  ],
+  "blocked_patterns": [
+    "^rm ",
+    "^curl ",
+    "^wget ",
+    "^ssh ",
+    "^scp ",
+    "^printenv$",
+    "^env$",
+    "^cat ~/",
+    "^cat /etc/",
+    "^cat /proc/",
+    "^cat /sys/"
+  ],
+  "description": "Allow only quantlab pipeline commands, block destructive system commands"
+}
